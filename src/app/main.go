@@ -12,14 +12,14 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const(
-	home = "/"
-	healthz = "/healthz"
+const (
+	home     = "/"
+	healthz  = "/healthz"
 	schedule = "/schedule"
-	ping = "/ping"
+	ping     = "/ping"
 )
 
-func main (){
+func main() {
 	mux := http.NewServeMux()
 	mux.Handle(home, &homeHandler{})
 	mux.Handle(healthz, &healthzHandler{})
@@ -29,16 +29,13 @@ func main (){
 	if err != nil {
 		log.Fatal(err)
 	}
-
-
-	
 }
 
 type homeHandler struct{}
 
 func (h *homeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !checkPath(home, r.URL.Path){
-		http.Error(w, "404: URL Not Found",http.StatusNotFound )	
+	if !checkPath(home, r.URL.Path) {
+		http.Error(w, "404: URL Not Found", http.StatusNotFound)
 		return
 	}
 	ip := GetOutboundIP()
@@ -48,8 +45,8 @@ func (h *homeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type healthzHandler struct{}
 
 func (h *healthzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !checkPath(home, r.URL.Path){
-		http.Error(w, "404: URL Not Found",http.StatusNotFound )	
+	if !checkPath(home, r.URL.Path) {
+		http.Error(w, "404: URL Not Found", http.StatusNotFound)
 		return
 	}
 	w.Write([]byte("OK"))
@@ -58,31 +55,32 @@ func (h *healthzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type pingHandler struct{}
 
 func (h *pingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !checkPath(ping, r.URL.Path){
-		http.Error(w, "404: URL Not Found",http.StatusNotFound )	
+	if !checkPath(ping, r.URL.Path) {
+		http.Error(w, "404: URL Not Found", http.StatusNotFound)
 		return
 	}
 	client := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
+		Addr:     "localhost:6379",
 		Password: "",
-		DB: 0,
+		DB:       0,
 	})
 	ctx := context.Background()
-	err := client.Incr(ctx,"API_COUNT").Err()
-	if err != nil{
+	err := client.Incr(ctx, "API_COUNT").Err()
+	if err != nil {
 		fmt.Println(err)
 	}
 	w.Write([]byte(fmt.Sprintf(
-		"Requester IP: %v\nTime: %s\nAPI COUNT: %s",strings.Split(r.RemoteAddr, ":"), time.Now().Format(time.RFC3339), client.Get(ctx, "API_COUNT"))))
+		"Requester IP: %v\nTime: %s\nAPI COUNT: %s", strings.Split(r.RemoteAddr, ":"), time.Now().Format(time.RFC3339), client.Get(ctx, "API_COUNT"))))
 }
 
+// GetOutboundIP returns the IP of the preferred Network interface
 func GetOutboundIP() net.IP {
-    conn, err := net.Dial("udp", "8.8.8.8:80")
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer conn.Close()
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
 
-    localAddr := conn.LocalAddr().(*net.UDPAddr)
-    return localAddr.IP
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	return localAddr.IP
 }
