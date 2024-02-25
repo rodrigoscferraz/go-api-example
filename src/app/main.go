@@ -45,7 +45,7 @@ func (h *homeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type healthzHandler struct{}
 
 func (h *healthzHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !checkPath(home, r.URL.Path) {
+	if !checkPath(healthz, r.URL.Path) {
 		http.Error(w, "404: URL Not Found", http.StatusNotFound)
 		return
 	}
